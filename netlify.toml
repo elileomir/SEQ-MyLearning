@@ -5,6 +5,10 @@
   command = "npm run build"
   publish = "dist"
 
+# Force devDependencies install (needed for TypeScript)
+[build.environment]
+  NPM_FLAGS = "--include=dev"
+
 # Environment variables (set these in Netlify UI for security)
 # - VITE_SUPABASE_URL
 # - VITE_SUPABASE_ANON_KEY
