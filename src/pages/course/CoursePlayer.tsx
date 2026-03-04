@@ -24,6 +24,7 @@ type Module = Database["public"]["Tables"]["mylearning_modules"]["Row"];
 type Progress = Database["public"]["Tables"]["mylearning_user_progress"]["Row"];
 
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import QuizPlayer from "@/components/player/QuizPlayer";
 
 export default function CoursePlayer() {
@@ -117,7 +118,7 @@ export default function CoursePlayer() {
       const moduleIdFromUrl = searchParams.get("moduleId");
       const currentMod = moduleIdFromUrl
         ? sortedModules.find((m) => m.id === moduleIdFromUrl) ||
-          sortedModules[0]
+        sortedModules[0]
         : sortedModules[0];
 
       const currentIndex = sortedModules.findIndex(
@@ -447,13 +448,12 @@ export default function CoursePlayer() {
                 key={module.id}
                 disabled={isLocked}
                 onClick={() => handleModuleSelect(module)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left group ${
-                  isActive
-                    ? "bg-blue-600/20 text-blue-400 border border-blue-600/30"
-                    : isLocked
-                      ? "opacity-40 cursor-not-allowed"
-                      : "hover:bg-zinc-800 text-zinc-300 hover:text-white"
-                }`}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left group ${isActive
+                  ? "bg-blue-600/20 text-blue-400 border border-blue-600/30"
+                  : isLocked
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:bg-zinc-800 text-zinc-300 hover:text-white"
+                  }`}
               >
                 <div className="shrink-0">
                   {isCompleted ? (
@@ -723,15 +723,13 @@ export default function CoursePlayer() {
 
                   {/* Custom Controls Overlay */}
                   <div
-                    className={`absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-4 pb-4 pt-10 transition-opacity duration-300 z-10 ${
-                      showControls || !playing ? "opacity-100" : "opacity-0"
-                    }`}
+                    className={`absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-4 pb-4 pt-10 transition-opacity duration-300 z-10 ${showControls || !playing ? "opacity-100" : "opacity-0"
+                      }`}
                   >
                     {/* Progress Bar */}
                     <div
-                      className={`w-full h-1.5 bg-zinc-700 rounded-full mb-4 overflow-hidden relative group/progress ${
-                        isAdmin || isPreview ? "cursor-pointer" : ""
-                      }`}
+                      className={`w-full h-1.5 bg-zinc-700 rounded-full mb-4 overflow-hidden relative group/progress ${isAdmin || isPreview ? "cursor-pointer" : ""
+                        }`}
                       onClick={(e) => {
                         if (!isAdmin && !isPreview) return;
                         const progressBar = e.currentTarget;
@@ -884,6 +882,7 @@ export default function CoursePlayer() {
                     {activeModule.content_type === "slide" && (
                       <div className="prose prose-slate max-w-none text-slate-800 prose-headings:text-slate-900 prose-p:text-slate-700 prose-li:text-slate-700 prose-strong:text-slate-900 md:prose-lg">
                         <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
                           components={{
                             h1: ({ node, ...props }) => (
                               <h1
@@ -894,6 +893,12 @@ export default function CoursePlayer() {
                             h2: ({ node, ...props }) => (
                               <h2
                                 className="text-2xl font-semibold mb-4 mt-8 text-slate-900"
+                                {...props}
+                              />
+                            ),
+                            h3: ({ node, ...props }) => (
+                              <h3
+                                className="text-xl font-semibold mb-3 mt-6 text-slate-800"
                                 {...props}
                               />
                             ),
@@ -932,6 +937,20 @@ export default function CoursePlayer() {
                                 className="border-l-4 border-blue-500 pl-4 py-1 my-6 italic text-slate-600 bg-slate-50 rounded-r-lg"
                                 {...props}
                               />
+                            ),
+                            table: ({ node, ...props }) => (
+                              <div className="my-6 overflow-x-auto rounded-lg border border-slate-200">
+                                <table className="min-w-full divide-y divide-slate-200 text-sm" {...props} />
+                              </div>
+                            ),
+                            thead: ({ node, ...props }) => (
+                              <thead className="bg-slate-50" {...props} />
+                            ),
+                            th: ({ node, ...props }) => (
+                              <th className="px-4 py-3 text-left font-semibold text-slate-900 whitespace-nowrap" {...props} />
+                            ),
+                            td: ({ node, ...props }) => (
+                              <td className="px-4 py-3 text-slate-700 border-t border-slate-100" {...props} />
                             ),
                           }}
                         >
@@ -1036,63 +1055,63 @@ export default function CoursePlayer() {
                       !videoCompleted) ||
                     activeModule.content_type === "quiz"
                   ) && (
-                    <div className="border-t border-slate-200 bg-white p-6 md:px-10 py-6 shrink-0 animate-in slide-in-from-bottom-5 fade-in duration-500">
-                      <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                        <Button
-                          variant="outline"
-                          className="w-full md:w-auto text-slate-600 border-slate-300 hover:bg-slate-50"
-                          disabled={currentModuleIndex === 0}
-                          onClick={() =>
-                            currentModuleIndex > 0 &&
-                            handleModuleSelect(modules[currentModuleIndex - 1])
-                          }
-                        >
-                          <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-                          Module
-                        </Button>
-                        <Button
-                          size="lg"
-                          className={`w-full md:w-auto ${isModuleCompleted(activeModule.id) ? "bg-slate-900 hover:bg-slate-800 text-white" : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20"}`}
-                          disabled={
-                            currentModuleIndex === modules.length - 1 &&
-                            isCourseFullyComplete // Disable if already done and certified? No let them download again
-                          }
-                          onClick={async () => {
-                            if (!isModuleCompleted(activeModule.id))
-                              await markModuleComplete(activeModule.id);
-
-                            // Navigation Logic
-                            if (currentModuleIndex < modules.length - 1) {
-                              handleModuleSelect(
-                                modules[currentModuleIndex + 1],
-                              );
-                            } else {
-                              // FINISH COURSE PRESSED!
-                              const newStates = await markModuleComplete(
-                                activeModule.id,
-                              );
-                              handleCourseCompletion(newStates);
+                      <div className="border-t border-slate-200 bg-white p-6 md:px-10 py-6 shrink-0 animate-in slide-in-from-bottom-5 fade-in duration-500">
+                        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                          <Button
+                            variant="outline"
+                            className="w-full md:w-auto text-slate-600 border-slate-300 hover:bg-slate-50"
+                            disabled={currentModuleIndex === 0}
+                            onClick={() =>
+                              currentModuleIndex > 0 &&
+                              handleModuleSelect(modules[currentModuleIndex - 1])
                             }
-                          }}
-                        >
-                          {currentModuleIndex === modules.length - 1
-                            ? isCourseFullyComplete
-                              ? "Download Certificate"
-                              : "Finish Course"
-                            : isModuleCompleted(activeModule.id)
-                              ? "Next Module"
-                              : "Mark as Complete & Next"}
-                          {currentModuleIndex !== modules.length - 1 ? (
-                            <ChevronRight className="ml-2 h-4 w-4" />
-                          ) : (
-                            !isCourseFullyComplete && (
-                              <Trophy className="ml-2 h-4 w-4" />
-                            )
-                          )}
-                        </Button>
+                          >
+                            <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+                            Module
+                          </Button>
+                          <Button
+                            size="lg"
+                            className={`w-full md:w-auto ${isModuleCompleted(activeModule.id) ? "bg-slate-900 hover:bg-slate-800 text-white" : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20"}`}
+                            disabled={
+                              currentModuleIndex === modules.length - 1 &&
+                              isCourseFullyComplete // Disable if already done and certified? No let them download again
+                            }
+                            onClick={async () => {
+                              if (!isModuleCompleted(activeModule.id))
+                                await markModuleComplete(activeModule.id);
+
+                              // Navigation Logic
+                              if (currentModuleIndex < modules.length - 1) {
+                                handleModuleSelect(
+                                  modules[currentModuleIndex + 1],
+                                );
+                              } else {
+                                // FINISH COURSE PRESSED!
+                                const newStates = await markModuleComplete(
+                                  activeModule.id,
+                                );
+                                handleCourseCompletion(newStates);
+                              }
+                            }}
+                          >
+                            {currentModuleIndex === modules.length - 1
+                              ? isCourseFullyComplete
+                                ? "Download Certificate"
+                                : "Finish Course"
+                              : isModuleCompleted(activeModule.id)
+                                ? "Next Module"
+                                : "Mark as Complete & Next"}
+                            {currentModuleIndex !== modules.length - 1 ? (
+                              <ChevronRight className="ml-2 h-4 w-4" />
+                            ) : (
+                              !isCourseFullyComplete && (
+                                <Trophy className="ml-2 h-4 w-4" />
+                              )
+                            )}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               )}
             </div>

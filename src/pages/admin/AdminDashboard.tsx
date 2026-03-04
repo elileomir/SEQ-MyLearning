@@ -11,6 +11,9 @@ import {
   MoreHorizontal,
   FileText,
   Users,
+  Loader2,
+  BrainCircuit,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/supabase";
@@ -55,6 +58,7 @@ export default function AdminDashboard() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStage, setGenerationStage] = useState<string>("Initializing AI Engine...");
 
   /* const [layout, setLayout] = useState("list"); */
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -130,9 +134,13 @@ export default function AdminDashboard() {
   const handleGenerateCourse = async (params: CourseGenerationParams) => {
     if (!user) return;
     setIsGenerating(true);
+    setGenerationStage("Initializing AI Engine...");
     try {
       // 1. Generate Content via AI
-      const generatedData: GeneratedCourse = await generateFullCourse(params);
+      const generatedData: GeneratedCourse = await generateFullCourse({
+        ...params,
+        onProgress: setGenerationStage,
+      });
 
       // 2. Create Course in DB
       const { data: courseData, error: courseError } = await supabase
@@ -161,9 +169,9 @@ export default function AdminDashboard() {
             ? { questions: mod.questions }
             : mod.type === "video" && mod.videoUrl // If type is video, verify URL
               ? {
-                  url: mod.videoUrl,
-                  platform: detectVideoPlatform(mod.videoUrl),
-                } // Use 'url' to match ModuleEditor
+                url: mod.videoUrl,
+                platform: detectVideoPlatform(mod.videoUrl),
+              } // Use 'url' to match ModuleEditor
               : mod.content,
         // NOTE: If type is 'slide', content_data is string (markdown).
         // If 'quiz', it's JSON object.
@@ -270,7 +278,7 @@ export default function AdminDashboard() {
                   <span className="flex items-center gap-1">
                     <Users className="h-3 w-3" />
                     {course.target_job_roles?.length === 1 &&
-                    course.target_job_roles[0] === "All"
+                      course.target_job_roles[0] === "All"
                       ? "All Employees"
                       : `${course.target_job_roles?.length} Roles`}
                   </span>
@@ -369,6 +377,40 @@ export default function AdminDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dynamic AI Generation Overlay */}
+      {isGenerating && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-md transition-all duration-500 animate-in fade-in">
+          <div className="flex flex-col items-center max-w-lg w-full p-8 rounded-3xl bg-white shadow-2xl border border-purple-100 text-center space-y-8 animate-in zoom-in-95 duration-500">
+            <div className="relative">
+              <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-2xl animate-pulse"></div>
+              <div className="relative bg-gradient-to-tr from-purple-100 to-indigo-50 p-6 rounded-full border border-purple-200 shadow-inner">
+                <BrainCircuit className="w-16 h-16 text-purple-600 animate-bounce" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-500" />
+                Generating Course...
+              </h2>
+              <p className="text-gray-500 text-sm max-w-[280px] mx-auto leading-relaxed">
+                Our AI is crafting your curriculum, modules, and assessments. This might take a minute or two.
+              </p>
+            </div>
+
+            <div className="w-full bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center gap-3 text-left shadow-sm">
+              <Loader2 className="w-5 h-5 text-indigo-500 animate-spin shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Current Action</p>
+                <p className="text-sm font-medium text-gray-700 truncate" title={generationStage}>
+                  {generationStage}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

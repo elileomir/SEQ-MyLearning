@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import QuizBuilder from "./QuizBuilder";
+import MarkdownEditor from "./MarkdownEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,7 +15,7 @@ import {
   deriveTitleFromContent,
   deriveDescriptionFromContent,
 } from "@/lib/gemini";
-import { Sparkles, ExternalLink } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -28,6 +29,7 @@ import {
 type Module = Database["public"]["Tables"]["mylearning_modules"]["Row"];
 
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ModuleEditorProps {
   module: Module;
@@ -283,11 +285,10 @@ export default function ModuleEditor({
             <Button
               onClick={handleMasterAI}
               disabled={aiLoading}
-              className={`text-white shadow-md transition-all hover:scale-105 ${
-                aiLoading
-                  ? "bg-slate-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
-              }`}
+              className={`text-white shadow-md transition-all hover:scale-105 ${aiLoading
+                ? "bg-slate-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
+                }`}
               size="sm"
             >
               {aiLoading ? (
@@ -384,32 +385,21 @@ export default function ModuleEditor({
                     <div className="flex items-center justify-between">
                       <Label>Slide Content (Markdown)</Label>
                     </div>
-                    <Textarea
-                      className="min-h-[300px] font-mono"
-                      placeholder="# Header&#10;&#10;Unordered list:&#10;- Item 1"
+                    <MarkdownEditor
                       value={contentData.markdown || ""}
-                      onChange={(e) =>
+                      onChange={(value) =>
                         setContentData({
                           ...contentData,
-                          markdown: e.target.value,
+                          markdown: value,
                         })
                       }
+                      height={350}
+                      placeholder="# Header\n\nWrite your slide content here..."
                     />
-                    <div className="flex justify-between items-center text-xs text-muted-foreground">
-                      <p>
-                        AI will format this using Markdown (Headings, Lists,
-                        Bold).
-                      </p>
-                      <a
-                        href="https://stackedit.io/app#"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-indigo-500 hover:text-indigo-600 hover:underline"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        Trouble writing Markdown? Use StackEdit
-                      </a>
-                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Use the toolbar above or write Markdown directly. AI will
+                      also format this using Markdown.
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -445,6 +435,7 @@ export default function ModuleEditor({
                   <div className="grow p-6 md:p-8 overflow-y-auto bg-white">
                     <div className="prose prose-slate max-w-none text-slate-800 prose-headings:text-slate-900 prose-p:text-slate-700 prose-li:text-slate-700 prose-strong:text-slate-900">
                       <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
                         components={{
                           h1: ({ node, ...props }) => (
                             <h1
@@ -455,6 +446,12 @@ export default function ModuleEditor({
                           h2: ({ node, ...props }) => (
                             <h2
                               className="text-xl font-semibold mb-3 mt-6 text-slate-900"
+                              {...props}
+                            />
+                          ),
+                          h3: ({ node, ...props }) => (
+                            <h3
+                              className="text-lg font-semibold mb-2 mt-5 text-slate-800"
                               {...props}
                             />
                           ),
@@ -481,13 +478,26 @@ export default function ModuleEditor({
                               {...props}
                             />
                           ),
-                          // Add image styling support
                           img: ({ node, ...props }) => (
                             <img
                               className="rounded-xl shadow-md my-6 w-full max-w-lg mx-auto border"
                               alt={props.alt || "Slide image"}
                               {...props}
                             />
+                          ),
+                          table: ({ node, ...props }) => (
+                            <div className="my-4 overflow-x-auto rounded-lg border border-slate-200">
+                              <table className="min-w-full divide-y divide-slate-200 text-sm" {...props} />
+                            </div>
+                          ),
+                          thead: ({ node, ...props }) => (
+                            <thead className="bg-slate-50" {...props} />
+                          ),
+                          th: ({ node, ...props }) => (
+                            <th className="px-4 py-3 text-left font-semibold text-slate-900 whitespace-nowrap" {...props} />
+                          ),
+                          td: ({ node, ...props }) => (
+                            <td className="px-4 py-3 text-slate-700 border-t border-slate-100" {...props} />
                           ),
                         }}
                       >
@@ -596,11 +606,10 @@ export default function ModuleEditor({
                                 contentType: t,
                               })
                             }
-                            className={`text-xs p-1.5 rounded border transition-all ${
-                              enhanceOptions.contentType === t
-                                ? "bg-indigo-600 text-white border-indigo-600"
-                                : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"
-                            }`}
+                            className={`text-xs p-1.5 rounded border transition-all ${enhanceOptions.contentType === t
+                              ? "bg-indigo-600 text-white border-indigo-600"
+                              : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"
+                              }`}
                           >
                             {t.charAt(0).toUpperCase() + t.slice(1)}
                           </button>

@@ -14,6 +14,7 @@ interface AuthContextType {
   hasAccess: boolean;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  signInWithSSO: () => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,6 +82,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // but usually this is handled by a dedicated Login page.
   };
 
+  const signInWithSSO = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "azure",
+        options: {
+          // In a standard React SPA like Vite, we redirect back to origin
+          // and the Supabase client automatically parses the token on redirect.
+          redirectTo: window.location.origin,
+          scopes: "email profile openid",
+        },
+      });
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      return { error: null };
+    } catch (err) {
+      return {
+        error:
+          err instanceof Error
+            ? err.message
+            : "An unexpected error occurred during Microsoft sign-in.",
+      };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -97,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     hasAccess: profile?.mylearning_access === true,
     signIn,
     signOut,
+    signInWithSSO,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

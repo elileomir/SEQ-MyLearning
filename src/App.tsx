@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import Settings from "@/pages/Settings";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import CourseEditor from "@/pages/admin/CourseEditor";
+import AssetLibrary from "@/pages/admin/AssetLibrary";
 import CoursePlayer from "@/pages/course/CoursePlayer";
 import MyCourses from "@/pages/MyCourses";
 
@@ -109,6 +110,14 @@ const router = createBrowserRouter([
             element: (
               <AdminRoute>
                 <CourseEditor />
+              </AdminRoute>
+            ),
+          },
+          {
+            path: "admin/assets",
+            element: (
+              <AdminRoute>
+                <AssetLibrary />
               </AdminRoute>
             ),
           },

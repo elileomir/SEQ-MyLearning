@@ -13,13 +13,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/context/AuthContext";
+
+const MicrosoftLogo = () => (
+  <svg className="h-4 w-4 mr-2" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+    <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+    <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+    <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+  </svg>
+);
 
 export default function Login() {
   const navigate = useNavigate();
+  const { signInWithSSO } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [ssoLoading, setSsoLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   // Forgot Password State
@@ -45,6 +57,17 @@ export default function Login() {
       setMessage(error.message || "An error occurred during sign in");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSSOLogin = async () => {
+    setMessage("");
+    setSsoLoading(true);
+
+    const { error } = await signInWithSSO();
+    if (error) {
+      setMessage(error);
+      setSsoLoading(false);
     }
   };
 
@@ -117,6 +140,32 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-11 border-input bg-background hover:bg-muted font-medium text-foreground transition-all duration-200"
+              onClick={handleSSOLogin}
+              disabled={ssoLoading || loading}
+            >
+              {ssoLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <MicrosoftLogo />
+              )}
+              Continue with Microsoft
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-muted" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with email
+                </span>
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -174,7 +223,7 @@ export default function Login() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11" disabled={loading || ssoLoading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

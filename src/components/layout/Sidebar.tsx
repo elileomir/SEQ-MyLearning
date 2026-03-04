@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
+  FolderOpen,
 } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -35,13 +36,19 @@ export function Sidebar() {
     // Admin specific link
     ...(profile?.role === "admin"
       ? [
-          {
-            name: "Admin Panel",
-            href: "/admin",
-            icon: ShieldCheck,
-            active: pathname.startsWith("/admin"),
-          },
-        ]
+        {
+          name: "Admin Panel",
+          href: "/admin",
+          icon: ShieldCheck,
+          active: pathname === "/admin",
+        },
+        {
+          name: "Asset Library",
+          href: "/admin/assets",
+          icon: FolderOpen,
+          active: pathname === "/admin/assets",
+        },
+      ]
       : []),
     {
       name: "Settings",
