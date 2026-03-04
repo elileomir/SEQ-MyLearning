@@ -52,7 +52,7 @@
       img-src 'self' data: blob: https: *;
       connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://*.vimeo.com https://vimeo.com https://player.vimeo.com https://*.vimeocdn.com https://www.youtube.com https://youtube.com https://*.googlevideo.com;
       frame-src 'self' https://*.vimeo.com https://vimeo.com https://player.vimeo.com https://www.youtube.com https://youtube.com;
-      media-src 'self' https://*.vimeo.com https://vimeo.com https://player.vimeo.com https://*.googlevideo.com blob:;
+      media-src 'self' https://*.supabase.co https://*.vimeo.com https://vimeo.com https://player.vimeo.com https://*.googlevideo.com blob:;
       object-src 'none';
       base-uri 'self';
       form-action 'self';
